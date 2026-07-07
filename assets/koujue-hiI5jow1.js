@@ -1,1 +1,0 @@
-const e=["零","一","二","三","四","五","六","七","八","九","十"];function n(t){if(t<=10)return e[t];if(t<20)return"十"+e[t-10];const u=Math.floor(t/10),o=t%10;return o===0?e[u]+"十":e[u]+"十"+e[o]}function r(t,u){const o=t*u;return`${n(t)}${n(u)}${o<10?"得":""}${n(o)}`}function s(t){const u=[];for(let o=1;o<=9;o++)u.push({a:t,b:o,c:t*o,koujue:r(t,o)});return u}export{s as g,r as t};
