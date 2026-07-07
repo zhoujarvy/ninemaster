@@ -1,12 +1,34 @@
 // 基于 localStorage 的状态存储
 const PREFIX = 'ninemaster:'
 
+// 深合并: 用 defaults 填充 target 中缺失的字段
+// 用于版本升级时给旧 state 补齐新增字段的默认值
+function mergeDefaults(target, defaults) {
+  if (target == null) return JSON.parse(JSON.stringify(defaults))
+  if (typeof target !== 'object' || typeof defaults !== 'object') return target
+  const result = { ...target }
+  for (const k of Object.keys(defaults)) {
+    if (!(k in result)) {
+      result[k] = JSON.parse(JSON.stringify(defaults[k]))
+    } else if (
+      typeof result[k] === 'object' && typeof defaults[k] === 'object'
+      && !Array.isArray(result[k]) && !Array.isArray(defaults[k])
+    ) {
+      result[k] = mergeDefaults(result[k], defaults[k])
+    }
+  }
+  return result
+}
+
 function read(key, fallback) {
   try {
     const raw = localStorage.getItem(PREFIX + key)
-    return raw == null ? fallback : JSON.parse(raw)
+    if (raw == null) return JSON.parse(JSON.stringify(fallback))
+    const parsed = JSON.parse(raw)
+    // 合并默认值，确保新增字段存在（版本兼容）
+    return mergeDefaults(parsed, fallback)
   } catch {
-    return fallback
+    return JSON.parse(JSON.stringify(fallback))
   }
 }
 
