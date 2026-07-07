@@ -1,0 +1,1 @@
+let u=null;function a(e){u&&(u.pause(),u.currentTime=0);const n=new Audio(`./audio/${e}.mp3`);return n.playbackRate=1,u=n,n.play().catch(t=>{console.warn("音频播放失败:",e,t)})}function r(e,n){return a(`kj_${e}_${n}`)}function o(e,n){return a(`eq_${e}_${n}`)}function i(e){return a(e)}export{o as a,i as b,r as s};
