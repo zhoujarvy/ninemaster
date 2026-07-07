@@ -1,52 +1,56 @@
-// 基于 Web Speech API 的语音朗读
-// 优先使用中文语音，回退到默认语音
+// 基于预生成 mp3 的语音播放
+// 音频文件由 scripts/gen_audio.py 通过 edge-tts 生成, 放在 public/audio/
 
-let cachedVoices = []
+let currentAudio = null
 
-function loadVoices() {
-  return new Promise((resolve) => {
-    const v = window.speechSynthesis.getVoices()
-    if (v.length) {
-      cachedVoices = v
-      resolve(v)
-      return
-    }
-    window.speechSynthesis.onvoiceschanged = () => {
-      cachedVoices = window.speechSynthesis.getVoices()
-      resolve(cachedVoices)
-    }
+function playFile(name) {
+  // 停止当前正在播放的音频
+  if (currentAudio) {
+    currentAudio.pause()
+    currentAudio.currentTime = 0
+  }
+
+  const audio = new Audio(`./audio/${name}.mp3`)
+  audio.playbackRate = 1
+  currentAudio = audio
+
+  return audio.play().catch((e) => {
+    console.warn('音频播放失败:', name, e)
   })
 }
 
-function pickChineseVoice() {
-  const prefer = cachedVoices.find((v) => /zh(-|_)?CN/i.test(v.lang) && /female|ting|xiao|hui/i.test(v.name))
-  if (prefer) return prefer
-  const zh = cachedVoices.find((v) => /^zh/i.test(v.lang))
-  return zh || null
+// 朗读口诀（小九九，自动归一化为小数在前）
+// speakKoujue(3, 4) 和 speakKoujue(4, 3) 都朗读"三四十二"
+export function speakKoujue(a, b) {
+  const x = Math.min(a, b)
+  const y = Math.max(a, b)
+  return playFile(`kj_${x}_${y}`)
 }
 
-export async function ensureVoices() {
-  if (!cachedVoices.length) await loadVoices()
+// 朗读算式, 如 "3 乘 4 等于 12"（原样朗读，不归一化）
+export function speakEquation(a, b) {
+  return playFile(`eq_${a}_${b}`)
 }
 
-export function speak(text, { rate = 0.9, pitch = 1.1 } = {}) {
-  if (!('speechSynthesis' in window)) {
-    console.warn('当前浏览器不支持语音合成')
-    return
-  }
-  window.speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(text)
-  u.lang = 'zh-CN'
-  u.rate = rate
-  u.pitch = pitch
-  const voice = pickChineseVoice()
-  if (voice) u.voice = voice
-  window.speechSynthesis.speak(u)
+// 朗读数字
+export function speakNumber(n) {
+  return playFile(`num_${n}`)
+}
+
+// 播放鼓励语
+export function speakPhrase(name) {
+  return playFile(name)
+}
+
+// 兼容旧接口: speak(text) - 不再支持任意文本朗读
+// 保留导出避免破坏旧引用
+export function speak(_text) {
+  console.warn('speak(text) 已弃用, 请使用 speakKoujue/speakEquation/speakPhrase')
 }
 
 export function stopSpeak() {
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel()
+  if (currentAudio) {
+    currentAudio.pause()
+    currentAudio = 0
+  }
 }
-
-// 初始化时预加载语音列表
-ensureVoices()

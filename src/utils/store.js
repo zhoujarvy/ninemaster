@@ -22,6 +22,7 @@ const DEFAULT_STATE = {
   coins: 0,
   badges: [],
   wrongBook: [],
+  parentPassword: '1688',  // 家长面板密码，默认 1688，可在面板内修改
   stats: {
     totalAnswered: 0,
     totalCorrect: 0,
@@ -44,13 +45,16 @@ export const store = {
   },
 
   addWrong(item) {
-    const key = `${item.a}x${item.b}`
+    // 归一化为小数在前，便于去重（3x4 和 4x3 视为同一题）
+    const a = Math.min(item.a, item.b)
+    const b = Math.max(item.a, item.b)
+    const key = `${a}x${b}`
     const exists = this.state.wrongBook.find((w) => w.key === key)
     if (exists) {
       exists.count += 1
       exists.lastAt = Date.now()
     } else {
-      this.state.wrongBook.push({ key, ...item, count: 1, lastAt: Date.now() })
+      this.state.wrongBook.push({ key, a, b, count: 1, lastAt: Date.now() })
     }
     this.save()
   },
@@ -86,5 +90,10 @@ export const store = {
       return true
     }
     return false
+  },
+
+  setParentPassword(pwd) {
+    this.state.parentPassword = pwd
+    this.save()
   }
 }

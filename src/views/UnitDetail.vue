@@ -2,68 +2,125 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import NavBar from '../components/NavBar.vue'
+import Fox from '../components/Fox.vue'
+import Icon from '../components/Icon.vue'
 import { genUnitKoujue } from '../utils/koujue'
-import { speak } from '../utils/speech'
+import { speakKoujue, speakEquation, speakPhrase } from '../utils/speech'
 
 const route = useRoute()
 const n = computed(() => Number(route.params.n))
 const list = computed(() => genUnitKoujue(n.value))
 
 const activeIdx = ref(-1)
+const isPlayingAll = ref(false)
 const visualEmoji = ['🍎', '🍊', '🍓', '🍇', '🍉', '🍒', '🥝', '🍑', '🍐']
+
+const planetColors = ['#ff8fb1', '#ffb38a', '#ffe066', '#7eebc5', '#7ec8ff', '#c4a6ff', '#ff8c4a', '#ffd6b8', '#9be7e7']
 
 function play(item, idx) {
   activeIdx.value = idx
-  speak(item.koujue)
-  setTimeout(() => (activeIdx.value = -1), 800)
+  speakKoujue(item.a, item.b)
+  setTimeout(() => (activeIdx.value = -1), 900)
 }
 
+let timer = null
 function playAll() {
+  if (isPlayingAll.value) {
+    isPlayingAll.value = false
+    if (timer) clearTimeout(timer)
+    activeIdx.value = -1
+    return
+  }
+  isPlayingAll.value = true
   let i = 0
-  const next = () => {
-    if (i >= list.value.length) return
+  const step = () => {
+    if (!isPlayingAll.value || i >= list.value.length) {
+      isPlayingAll.value = false
+      activeIdx.value = -1
+      return
+    }
     play(list.value[i], i)
     i++
-    setTimeout(next, 1500)
+    timer = setTimeout(step, 1700)
   }
-  next()
+  step()
 }
 
-watch(n, () => activeIdx.value = -1)
+watch(n, () => {
+  activeIdx.value = -1
+  isPlayingAll.value = false
+  if (timer) clearTimeout(timer)
+})
+
+function emojiFor(idx) {
+  return visualEmoji[(idx) % visualEmoji.length]
+}
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <NavBar />
-    <div class="p-4 max-w-md mx-auto">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-lg font-bold text-orange-600">{{ n }} 的口诀</h2>
-        <button
-          @click="playAll"
-          class="bg-orange-500 text-white text-sm px-4 py-2 rounded-full active:scale-95 transition-transform"
+  <div class="min-h-screen starfield">
+    <NavBar :title="`${n} 的口诀`" />
+    <div class="relative z-10 p-4 max-w-md mx-auto">
+      <!-- 星球标题 -->
+      <div class="text-center my-4 flex flex-col items-center">
+        <div
+          class="w-20 h-20 rounded-full flex items-center justify-center shadow-soft animate-float"
+          :style="{
+            background: `radial-gradient(circle at 35% 35%, white, ${planetColors[(n-1) % 9]} 55%)`,
+            boxShadow: `0 0 30px ${planetColors[(n-1) % 9]}aa`
+          }"
         >
-          ▶ 连续播放
-        </button>
+          <span class="num-display text-4xl text-white drop-shadow">{{ n }}</span>
+        </div>
+        <p class="text-white/70 text-xs font-han mt-2">踏上 {{ n }} 号星球的口诀之旅</p>
       </div>
 
-      <div class="space-y-2">
+      <!-- 连续播放按钮 -->
+      <button
+        @click="playAll"
+        class="w-full mb-4 flex items-center justify-center gap-2 bg-gradient-to-r from-candy-pink to-candy-lilac text-white font-display font-bold py-3 rounded-2xl btn-pop shadow-soft"
+      >
+        <Icon name="speaker" :size="22" color="white" />
+        <span>{{ isPlayingAll ? '停止播放' : '连续朗读' }}</span>
+      </button>
+
+      <!-- 口诀列表 -->
+      <div class="space-y-2.5">
         <button
           v-for="(item, idx) in list"
           :key="idx"
           @click="play(item, idx)"
-          class="w-full bg-white rounded-2xl p-4 shadow-sm flex items-center justify-between active:scale-98 transition-all"
-          :class="{ 'ring-2 ring-yellow-400 animate-pop': activeIdx === idx }"
+          class="w-full rounded-2xl p-4 text-left btn-pop border-2 transition-all flex items-center gap-3"
+          :class="activeIdx === idx
+            ? 'bg-gradient-to-br from-candy-lemon to-candy-peach border-candy-lemon scale-[1.02] shadow-glow'
+            : 'bg-white/10 border-white/10'"
         >
-          <div class="flex-1 text-left">
-            <div class="text-2xl font-bold text-gray-800">
+          <!-- 序号圆 -->
+          <div
+            class="w-10 h-10 rounded-full flex items-center justify-center font-display font-bold flex-shrink-0"
+            :class="activeIdx === idx ? 'bg-space-900 text-white' : 'bg-white/15 text-white'"
+          >
+            {{ idx + 1 }}
+          </div>
+
+          <div class="flex-1">
+            <div class="num-display text-2xl" :class="activeIdx === idx ? 'text-space-900' : 'text-white'">
               {{ item.a }} × {{ item.b }} = {{ item.c }}
             </div>
-            <div class="text-sm text-orange-500 mt-1">{{ item.koujue }}</div>
-            <div class="mt-2 text-xl">
-              <span v-for="k in item.b" :key="k">{{ visualEmoji[(item.a - 1) % visualEmoji.length] }}</span>
+            <div class="text-sm font-han mt-0.5" :class="activeIdx === idx ? 'text-space-700' : 'text-candy-pink'">
+              {{ item.koujue }}
+            </div>
+            <div class="mt-1.5 text-base leading-none">
+              <span v-for="k in item.b" :key="k" class="mr-0.5">{{ emojiFor(item.a - 1) }}</span>
             </div>
           </div>
-          <div class="text-3xl text-orange-300">🔊</div>
+
+          <div
+            class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+            :class="activeIdx === idx ? 'bg-space-900/20' : 'bg-white/10'"
+          >
+            <Icon name="speaker" :size="20" :color="activeIdx === idx ? '#1a1140' : '#ffe066'" />
+          </div>
         </button>
       </div>
     </div>
