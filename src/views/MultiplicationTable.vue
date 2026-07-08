@@ -1,9 +1,9 @@
 <script setup>
 import { ref } from 'vue'
 import NavBar from '../components/NavBar.vue'
-import Icon from '../components/Icon.vue'
 import Fox from '../components/Fox.vue'
-import { speakKoujue } from '../utils/speech'
+import Icon from '../components/Icon.vue'
+import { speakKoujue, stopSpeak } from '../utils/speech'
 import { toKoujue } from '../utils/koujue'
 import { store } from '../utils/store'
 
@@ -12,6 +12,7 @@ const flash = ref('')
 const flashEq = ref('')
 
 function playCell(a, b) {
+  stopAll()
   active.value = `${a}-${b}`
   speakKoujue(a, b)
   flash.value = toKoujue(a, b)
@@ -20,14 +21,74 @@ function playCell(a, b) {
   setTimeout(() => (active.value = null), 700)
 }
 
-// 第 b 行的格子: a 从 1 到 b (正阶梯, 顶部 1 句, 底部 9 句)
+// 第 b 行的格子: a 从 1 到 b
 function rowCells(b) {
   const arr = []
   for (let a = 1; a <= b; a++) arr.push({ a, b })
   return arr
 }
 
-// 颜色: 按行号分配渐变
+// 朗读全部 (45 句小九九)
+// 顺序: 1×1, 1×2, 2×2, 1×3, 2×3, 3×3, ... 1×9, ..., 9×9 (按行扫)
+const isPlayingAll = ref(false)
+let playAllTimer = null
+let currentAudioEl = null
+
+function buildAllCells() {
+  const arr = []
+  for (let b = 1; b <= 9; b++) {
+    for (let a = 1; a <= b; a++) arr.push({ a, b })
+  }
+  return arr
+}
+
+async function playAll() {
+  if (isPlayingAll.value) {
+    stopAll()
+    return
+  }
+  isPlayingAll.value = true
+  const cells = buildAllCells()
+  let i = 0
+  const step = () => {
+    if (!isPlayingAll.value || i >= cells.length) {
+      stopAll()
+      return
+    }
+    const { a, b } = cells[i]
+    active.value = `${a}-${b}`
+    flash.value = toKoujue(a, b)
+    flashEq.value = `${a} × ${b} = ${a * b}`
+    // 监听音频结束才继续下一句
+    currentAudioEl = new Audio(`./audio/kj_${Math.min(a, b)}_${Math.max(a, b)}.mp3`)
+    currentAudioEl.onended = () => {
+      i++
+      playAllTimer = setTimeout(step, 150)
+    }
+    currentAudioEl.onerror = () => {
+      i++
+      playAllTimer = setTimeout(step, 150)
+    }
+    currentAudioEl.play().catch(() => {
+      i++
+      playAllTimer = setTimeout(step, 150)
+    })
+  }
+  step()
+}
+
+function stopAll() {
+  isPlayingAll.value = false
+  if (playAllTimer) { clearTimeout(playAllTimer); playAllTimer = null }
+  if (currentAudioEl) {
+    currentAudioEl.onended = null
+    currentAudioEl.onerror = null
+    currentAudioEl.pause()
+    currentAudioEl = null
+  }
+  stopSpeak()
+}
+
 const rowTones = [
   'from-candy-pink/40 to-candy-pink/15',
   'from-candy-peach/40 to-candy-peach/15',
@@ -51,14 +112,22 @@ const rowTones = [
         <p class="text-white/60 font-han text-xs mt-0.5">点点任意一格，听口诀</p>
       </div>
 
-      <!-- 正阶梯形小九九表 (顶部 1 句, 底部 9 句, 顶尖在上) -->
+      <!-- 朗读全部按钮 -->
+      <button
+        @click="playAll"
+        class="w-full mb-3 flex items-center justify-center gap-2 bg-gradient-to-r from-candy-pink to-candy-lilac text-white font-display font-bold py-3 rounded-2xl btn-pop shadow-soft"
+      >
+        <Icon :name="isPlayingAll ? 'x' : 'speaker'" :size="22" color="white" />
+        <span>{{ isPlayingAll ? '停止朗读' : '朗读全部 45 句' }}</span>
+      </button>
+
+      <!-- 正阶梯形小九九表 -->
       <div class="bg-white/8 backdrop-blur px-2 py-4 rounded-3xl border border-white/10 overflow-x-auto scroll-hide">
         <div
           v-for="b in 9"
           :key="b"
           class="flex justify-center gap-1 mb-1.5"
         >
-          <!-- 行号标签 (右侧, 表示本行的乘数) -->
           <button
             v-for="cell in rowCells(b)"
             :key="`${cell.a}-${cell.b}`"
@@ -85,20 +154,6 @@ const rowTones = [
           </div>
         </div>
       </transition>
-
-      <!-- 提示 -->
-      <div class="mt-5 bg-white/5 backdrop-blur rounded-2xl p-4 border border-white/10">
-        <div class="flex items-start gap-3">
-          <div class="w-9 h-9 rounded-full bg-candy-lemon/20 flex items-center justify-center flex-shrink-0">
-            <Icon name="speaker" :size="18" color="#ffe066" />
-          </div>
-          <div class="text-xs text-white/70 font-han leading-relaxed">
-            <p>小九九规则：小数在前，大数在后。</p>
-            <p class="mt-1">例如 3×4 和 4×3 都用「三四十二」这一句。</p>
-            <p class="mt-1 text-candy-lemon">共 45 句，比 81 句少背一半！</p>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
