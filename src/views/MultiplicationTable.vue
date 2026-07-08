@@ -20,10 +20,10 @@ function playCell(a, b) {
   setTimeout(() => (active.value = null), 700)
 }
 
-// 第 a 行的格子: b 从 a 到 9
-function rowCells(a) {
+// 第 b 行的格子: a 从 1 到 b (正阶梯, 顶部 1 句, 底部 9 句)
+function rowCells(b) {
   const arr = []
-  for (let b = a; b <= 9; b++) arr.push({ a, b })
+  for (let a = 1; a <= b; a++) arr.push({ a, b })
   return arr
 }
 
@@ -51,28 +51,23 @@ const rowTones = [
         <p class="text-white/60 font-han text-xs mt-0.5">点点任意一格，听口诀</p>
       </div>
 
-      <!-- 阶梯形小九九表 -->
+      <!-- 正阶梯形小九九表 (顶部 1 句, 底部 9 句, 顶尖在上) -->
       <div class="bg-white/8 backdrop-blur px-2 py-4 rounded-3xl border border-white/10 overflow-x-auto scroll-hide">
         <div
-          v-for="a in 9"
-          :key="a"
+          v-for="b in 9"
+          :key="b"
           class="flex justify-center gap-1 mb-1.5"
         >
-          <!-- 行标签 (左侧) -->
-          <div class="w-6 h-7 flex items-center justify-center text-candy-lemon font-display font-bold text-xs flex-shrink-0">
-            {{ a }}
-          </div>
-
-          <!-- 该行的格子 -->
+          <!-- 行号标签 (右侧, 表示本行的乘数) -->
           <button
-            v-for="cell in rowCells(a)"
+            v-for="cell in rowCells(b)"
             :key="`${cell.a}-${cell.b}`"
             @click="playCell(cell.a, cell.b)"
             class="h-7 px-1 rounded-md flex items-center justify-center text-[11px] font-display font-bold btn-pop bg-gradient-to-br border border-white/10 leading-none"
             :class="[
               active === `${cell.a}-${cell.b}`
                 ? 'from-candy-lemon to-candy-peach text-space-900 scale-110 animate-pop shadow-glow z-10'
-                : rowTones[(cell.a - 1) % rowTones.length] + ' text-white'
+                : rowTones[(cell.b - 1) % rowTones.length] + ' text-white'
             ]"
             style="min-width: 36px;"
           >
