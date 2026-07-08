@@ -3,15 +3,14 @@ import { ref } from 'vue'
 import NavBar from '../components/NavBar.vue'
 import Icon from '../components/Icon.vue'
 import Fox from '../components/Fox.vue'
-import { speakKoujue, speakEquation } from '../utils/speech'
+import { speakKoujue } from '../utils/speech'
 import { toKoujue } from '../utils/koujue'
 import { store } from '../utils/store'
 
-const active = ref(null)   // 当前高亮的格子 "a-b" (a<=b)
+const active = ref(null)
 const flash = ref('')
 const flashEq = ref('')
 
-// 点击格 (a, b) 其中 a<=b
 function playCell(a, b) {
   active.value = `${a}-${b}`
   speakKoujue(a, b)
@@ -21,56 +20,63 @@ function playCell(a, b) {
   setTimeout(() => (active.value = null), 700)
 }
 
-// 行 a 中有 (b-a+1) 个有效格子, b 从 a 到 9
+// 第 a 行的格子: b 从 a 到 9
 function rowCells(a) {
   const arr = []
-  for (let b = a; b <= 9; b++) arr.push(b)
+  for (let b = a; b <= 9; b++) arr.push({ a, b })
   return arr
 }
 
-// 颜色分配, 让对角线有视觉节奏
-const cellTones = [
-  'from-candy-pink/40 to-candy-pink/10',
-  'from-candy-peach/40 to-candy-peach/10',
-  'from-candy-lemon/40 to-candy-lemon/10',
-  'from-candy-mint/40 to-candy-mint/10',
-  'from-candy-sky/40 to-candy-sky/10',
-  'from-candy-lilac/40 to-candy-lilac/10',
-  'from-candy-pink/40 to-candy-lilac/10',
-  'from-candy-mint/40 to-candy-sky/10',
-  'from-candy-peach/40 to-candy-lemon/10'
+// 颜色: 按行号分配渐变
+const rowTones = [
+  'from-candy-pink/40 to-candy-pink/15',
+  'from-candy-peach/40 to-candy-peach/15',
+  'from-candy-lemon/40 to-candy-lemon/15',
+  'from-candy-mint/40 to-candy-mint/15',
+  'from-candy-sky/40 to-candy-sky/15',
+  'from-candy-lilac/40 to-candy-lilac/15',
+  'from-candy-pink/40 to-candy-lilac/15',
+  'from-candy-peach/40 to-candy-mint/15',
+  'from-candy-sky/40 to-candy-pink/15'
 ]
 </script>
 
 <template>
   <div class="min-h-screen starfield">
     <NavBar title="九九总表" />
-    <div class="relative z-10 p-4 max-w-md mx-auto">
-      <div class="text-center my-4 flex flex-col items-center">
-        <Fox mood="happy" :size="80" />
+    <div class="relative z-10 p-3 max-w-md mx-auto">
+      <div class="text-center my-3 flex flex-col items-center">
+        <Fox mood="happy" :size="72" />
         <p class="text-white/90 font-han mt-2 text-sm">小九九 · 共 45 句</p>
-        <p class="text-white/60 font-han text-xs mt-0.5">点点你的小手指 👆</p>
+        <p class="text-white/60 font-han text-xs mt-0.5">点点任意一格，听口诀</p>
       </div>
 
-      <!-- 三角形小九九表 -->
-      <div class="bg-white/8 backdrop-blur p-3 rounded-3xl border border-white/10">
-        <div v-for="a in 9" :key="a" class="flex justify-center gap-1.5 mb-1.5">
-          <!-- 行标签 -->
-          <div class="w-8 h-8 flex items-center justify-center text-candy-pink font-display font-bold text-sm flex-shrink-0">{{ a }}</div>
-          <!-- 行的格子 -->
+      <!-- 阶梯形小九九表 -->
+      <div class="bg-white/8 backdrop-blur px-2 py-4 rounded-3xl border border-white/10 overflow-x-auto scroll-hide">
+        <div
+          v-for="a in 9"
+          :key="a"
+          class="flex justify-center gap-1 mb-1.5"
+        >
+          <!-- 行标签 (左侧) -->
+          <div class="w-6 h-7 flex items-center justify-center text-candy-lemon font-display font-bold text-xs flex-shrink-0">
+            {{ a }}
+          </div>
+
+          <!-- 该行的格子 -->
           <button
-            v-for="b in rowCells(a)"
-            :key="a + '-' + b"
-            @click="playCell(a, b)"
-            class="h-8 px-2 rounded-lg flex items-center justify-center text-xs font-display font-bold btn-pop bg-gradient-to-br border border-white/10"
+            v-for="cell in rowCells(a)"
+            :key="`${cell.a}-${cell.b}`"
+            @click="playCell(cell.a, cell.b)"
+            class="h-7 px-1 rounded-md flex items-center justify-center text-[11px] font-display font-bold btn-pop bg-gradient-to-br border border-white/10 leading-none"
             :class="[
-              active === `${a}-${b}`
+              active === `${cell.a}-${cell.b}`
                 ? 'from-candy-lemon to-candy-peach text-space-900 scale-110 animate-pop shadow-glow z-10'
-                : cellTones[(a + b) % cellTones.length] + ' text-white'
+                : rowTones[(cell.a - 1) % rowTones.length] + ' text-white'
             ]"
-            style="min-width: 56px;"
+            style="min-width: 36px;"
           >
-            {{ a }}×{{ b }}
+            {{ cell.a }}×{{ cell.b }}
           </button>
         </div>
       </div>

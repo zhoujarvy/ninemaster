@@ -45,6 +45,7 @@ const planetColors = ['#ff8fb1', '#ffb38a', '#ffe066', '#7eebc5', '#7ec8ff', '#c
             <span class="num-display text-2xl text-white drop-shadow">{{ n }}</span>
           </div>
           <div class="text-xs text-white/70 font-han mt-2">的口诀</div>
+          <div class="text-[10px] text-white/40 font-han mt-0.5">{{ 10 - n }} 句</div>
           <div v-if="accuracy(n) != null" class="text-[10px] mt-1 px-2 py-0.5 rounded-full bg-candy-mint/20 text-candy-mint font-bold">
             {{ accuracy(n) }}%
           </div>

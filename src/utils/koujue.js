@@ -36,21 +36,29 @@ export function genAllKoujue() {
   return list
 }
 
-// 生成单个单元的口诀
-// 单元 n 包含所有含 n 的口诀，按小九九规则展示（小数在前）
-// 例如单元 6: 1×6, 2×6, 3×6, 4×6, 5×6, 6×6, 6×7, 6×8, 6×9
+// 生成单个单元的口诀（去重版）
+// 单元 n 只展示 n×n, n×(n+1), ..., n×9
+// 因为 n×1, n×2, ..., n×(n-1) 已在之前的单元学过（小九九规则）
+// 例如：
+//   单元 1: 1×1
+//   单元 2: 2×2, 2×3, ..., 2×9
+//   单元 6: 6×6, 6×7, 6×8, 6×9
+//   单元 9: 9×9
 export function genUnitKoujue(n) {
   const list = []
-  for (let b = 1; b <= 9; b++) {
-    const a = n
-    const small = Math.min(a, b)
-    const large = Math.max(a, b)
+  for (let b = n; b <= 9; b++) {
     list.push({
-      a: small,
-      b: large,
-      c: a * b,
-      koujue: toKoujue(a, b)  // toKoujue 内部已归一化
+      a: n,
+      b,
+      c: n * b,
+      koujue: toKoujue(n, b)
     })
   }
   return list
+}
+
+// 获取单元 n 的口诀数量（用于 UI 提示）
+// 单元 n 共 (10 - n) 句
+export function unitCount(n) {
+  return 10 - n
 }
