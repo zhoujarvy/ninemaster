@@ -47,26 +47,19 @@ npm run preview
 
 构建后的 `dist/` 是纯静态文件，可托管到任何静态服务器。
 
-### GitHub Pages（推荐）
+### Cloudflare Pages（推荐）
 
-仓库已配置 `gh-pages` 部署脚本：
-
-```bash
-npm run build
-npx gh-pages -d dist -r https://github.com/<你的用户名>/ninemaster.git
-```
-
-到仓库 Settings → Pages → Branch 选择 `gh-pages` 即可。
-
-### Cloudflare Pages / Vercel / Netlify
-
-直接连接仓库，设置：
+直接连接 GitHub 仓库，设置：
 - 构建命令：`npm run build`
 - 输出目录：`dist`
 
-### Gitee Pages
+推送代码后自动构建部署，无需手动操作。
 
-将 `dist/` 内容推送到 `gh-pages` 分支或单独的仓库，开通 Gitee Pages 服务即可。
+### Vercel / Netlify
+
+同样连接仓库，设置：
+- 构建命令：`npm run build`
+- 输出目录：`dist`
 
 ## 🛠 技术栈
 
