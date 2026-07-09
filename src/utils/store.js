@@ -45,6 +45,14 @@ const DEFAULT_STATE = {
   badges: [],
   wrongBook: [],
   parentPassword: '1688',  // 家长面板密码，默认 1688，可在面板内修改
+  // 每个单元的最佳成绩: { 0: { bestStreak, bestScore }, 1: {...}, ... }
+  // 0 = 混合单元
+  bestRecords: {},
+  // 全局最佳记录
+  bestStreak: 0,
+  bestScore: 0,
+  // 累计练习时长（秒）
+  totalPracticeSeconds: 0,
   stats: {
     totalAnswered: 0,
     totalCorrect: 0,
@@ -117,5 +125,39 @@ export const store = {
   setParentPassword(pwd) {
     this.state.parentPassword = pwd
     this.save()
+  },
+
+  // 记录本次闯关的连击和得分，返回是否打破记录
+  recordRun(unit, streak, score, durationSeconds = 0) {
+    const prev = this.state.bestRecords[unit] || { bestStreak: 0, bestScore: 0 }
+    const beatStreak = streak > prev.bestStreak
+    const beatScore = score > prev.bestScore
+    this.state.bestRecords[unit] = {
+      bestStreak: Math.max(prev.bestStreak, streak),
+      bestScore: Math.max(prev.bestScore, score)
+    }
+    // 全局最佳
+    let beatGlobalStreak = false
+    if (streak > this.state.bestStreak) {
+      this.state.bestStreak = streak
+      beatGlobalStreak = true
+    }
+    if (score > this.state.bestScore) {
+      this.state.bestScore = score
+    }
+    // 累计时长
+    if (durationSeconds > 0) {
+      this.state.totalPracticeSeconds += durationSeconds
+    }
+    this.save()
+    return {
+      beatStreak,      // 本次是否打破该单元连击记录
+      beatScore,       // 本次是否打破该单元得分记录
+      beatGlobalStreak // 是否打破全局连击记录
+    }
+  },
+
+  getBestRecord(unit) {
+    return this.state.bestRecords[unit] || { bestStreak: 0, bestScore: 0 }
   }
 }

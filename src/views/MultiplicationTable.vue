@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import NavBar from '../components/NavBar.vue'
 import Fox from '../components/Fox.vue'
 import Icon from '../components/Icon.vue'
@@ -84,10 +84,16 @@ function stopAll() {
     currentAudioEl.onended = null
     currentAudioEl.onerror = null
     currentAudioEl.pause()
+    currentAudioEl.currentTime = 0
     currentAudioEl = null
   }
   stopSpeak()
 }
+
+// 组件卸载时停止朗读，避免离开页面音频继续播放
+onUnmounted(() => {
+  stopAll()
+})
 
 const rowTones = [
   'from-candy-pink/40 to-candy-pink/15',
