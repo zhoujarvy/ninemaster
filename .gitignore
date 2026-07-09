@@ -7,3 +7,10 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 *.log
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
