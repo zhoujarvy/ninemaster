@@ -1,11 +1,13 @@
 <script setup>
+import { computed } from 'vue'
 import NavBar from '../components/NavBar.vue'
 import Fox from '../components/Fox.vue'
 import Icon from '../components/Icon.vue'
 import { store } from '../utils/store'
 import { speakKoujue, speakEquation } from '../utils/speech'
 
-const list = store.state.wrongBook
+// 用 computed 确保每次 store 变更后视图刷新
+const list = computed(() => store.state.wrongBook)
 
 function playKoujue(w) {
   speakKoujue(w.a, w.b)
@@ -63,10 +65,10 @@ function clearItem(key) {
             </button>
             <button
               @click="clearItem(w.key)"
-              class="w-12 h-12 rounded-2xl bg-candy-mint/20 border border-candy-mint/40 text-candy-mint flex items-center justify-center btn-pop"
-              title="已掌握，删除"
+              class="w-12 h-12 rounded-2xl bg-candy-pink/20 border border-candy-pink/40 text-candy-pink flex items-center justify-center btn-pop"
+              title="删除错题"
             >
-              <Icon name="check" :size="22" color="#7eebc5" />
+              <Icon name="trash" :size="22" color="#ff8fb1" />
             </button>
           </div>
         </div>

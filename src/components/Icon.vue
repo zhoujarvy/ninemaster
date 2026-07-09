@@ -30,7 +30,8 @@ const paths = {
   trophy: '<path d="M7 4h10v3a5 5 0 0 1-10 0V4z"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3M9 17h6M10 17v-2M14 17v-2M8 21h8"/>',
   download: '<path d="M12 3v12M7 11l5 4 5-4M5 21h14"/>',
   home: '<path d="M3 12l9-8 9 8M5 10v10h14V10"/>',
-  fire: '<path d="M12 3c2 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3-2-3 0-6 0-8z"/>'
+  fire: '<path d="M12 3c2 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3-2-3 0-6 0-8z"/>',
+  trash: '<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6"/>'
 }
 
 function getSvg(name, color, size) {
