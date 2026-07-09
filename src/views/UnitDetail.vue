@@ -110,8 +110,25 @@ function emojiFor(idx) {
             <div class="text-sm font-han mt-0.5" :class="activeIdx === idx ? 'text-space-700' : 'text-candy-pink'">
               {{ item.koujue }}
             </div>
-            <div class="mt-1.5 text-base leading-none">
-              <span v-for="k in item.b" :key="k" class="mr-0.5">{{ emojiFor(item.a - 1) }}</span>
+            <!-- 矩阵可视化: item.a 行 × item.b 列 -->
+            <div
+              class="mt-2 inline-flex flex-col gap-1 p-2 rounded-xl"
+              :class="activeIdx === idx ? 'bg-space-900/10' : 'bg-white/5'"
+            >
+              <div
+                v-for="row in item.a"
+                :key="row"
+                class="flex gap-1"
+              >
+                <span
+                  v-for="col in item.b"
+                  :key="col"
+                  class="text-base leading-none"
+                >{{ emojiFor(idx) }}</span>
+              </div>
+            </div>
+            <div class="text-[10px] font-han mt-1" :class="activeIdx === idx ? 'text-space-600' : 'text-white/50'">
+              {{ item.a }} 行 × {{ item.b }} 列 = {{ item.c }}
             </div>
           </div>
 
