@@ -1,4 +1,6 @@
 // 基于 localStorage 的状态存储
+import { reactive } from 'vue'
+
 const PREFIX = 'ninemaster:'
 
 // 深合并: 用 defaults 填充 target 中缺失的字段
@@ -63,7 +65,7 @@ const DEFAULT_STATE = {
 }
 
 export const store = {
-  state: read('state', DEFAULT_STATE),
+  state: reactive(read('state', DEFAULT_STATE)),
 
   save() {
     write('state', this.state)
